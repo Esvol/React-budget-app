@@ -1,5 +1,5 @@
 import React from 'react'
-import { createExpense, deleteBudget, deleteExpense, getAllMatchingItems } from '../helpers'
+import { createExpense, deleteItemHandler, getAllMatchingItems } from '../helpers'
 import { redirect, useLoaderData } from 'react-router-dom'
 import BudgetItem from './BudgetItem';
 import AddExpenseForm from './AddExpenseForm';
@@ -19,8 +19,6 @@ export async function budgetLoader({params}){
         value: params.id,
     })
 
-    console.log(expenses);
-
     if(!budget || !expenses){
         throw new Error("This budget is not exist")
     }
@@ -34,9 +32,8 @@ export async function budgetAction({request}) {
 
     if (_action === 'createExpense') {
         try {
-            createExpense({ name: values.newExpense, amount: values.newExpenseAmount, budgetId: values.newExpenseBudget })
+            createExpense({ name: values.newExpense, amount: values.newExpenseAmount, budgetId: values.newExpenseBudget, userId: values.userId })
             return toast.success(`Expense "${values.newExpense}" was created!`)
-
         } catch (error) {
             throw new Error("There was a problem creating a new expense")
         }
@@ -44,7 +41,7 @@ export async function budgetAction({request}) {
 
     if (_action === 'deleteExpense') {
         try {
-            deleteExpense(values.expenseId)
+            deleteItemHandler({category: 'expenses', key: 'id', value: values.expenseId})
             return toast.success(`Expense was deleted!`)
         } catch (error) {
             throw new Error("There was a problem deleting your expense")
@@ -53,9 +50,10 @@ export async function budgetAction({request}) {
 
     if (_action === 'deleteBudget') {
         try {
-            deleteBudget(values.budgetId)
+            deleteItemHandler({category: 'budgets', key: 'id', value: values.budgetId})
+            deleteItemHandler({category: 'expenses', key: 'budgetId', value: values.budgetId})
             toast.success(`Budget was deleted!`)
-            return redirect('/')
+            return redirect(`/${values.userId}`)
         } catch (error) {
             throw new Error("There was a problem deleting your budget")
         }
@@ -76,7 +74,7 @@ const BudgetPage = () => {
         </h1>
         <div className="flex-lg">
             <BudgetItem budget={budget} showDeleteButton={true}/>
-            <AddExpenseForm budgets={[budget]}/>
+            <AddExpenseForm budgets={[budget]} isBudgetPage={true}/>
         </div>
         {
             expenses && expenses.length > 0 && (

@@ -1,14 +1,13 @@
 import React from 'react'
+import { deleteItemHandler, getAllMatchingItems } from '../helpers'
 import { Link, useLoaderData } from 'react-router-dom'
-import { addToHistory, deleteItemHandler, getAllMatchingItems, returnExpense } from '../helpers'
-import ExpensesTable from './ExpensesTable'
 import { toast } from 'react-toastify'
+import ExpensesTable from './ExpensesTable'
 import { ArrowUturnLeftIcon } from '@heroicons/react/24/solid'
 
-export function expensesLoader({params}) {
-    console.log(params);
-    const expenses = getAllMatchingItems({category: "expenses", key: 'userId', value: params.id})
-    return { expenses }
+export const historyLoader = ({params}) => {
+    const expenses = getAllMatchingItems({category: 'history', key: 'userId', value: params.id})
+    return {expenses}
 }
 
 export async function expensesAction({ request }) {
@@ -17,7 +16,6 @@ export async function expensesAction({ request }) {
 
     if (_action === 'deleteExpense') {
         try {
-            addToHistory({category: 'expenses', key: 'id', value: values.expenseId})
             deleteItemHandler({category: 'expenses', key: 'id', value: values.expenseId})
             return toast.success(`Expense was deleted!`)
         } catch (error) {
@@ -25,39 +23,30 @@ export async function expensesAction({ request }) {
         }
     }
 
-    if (_action === 'returnExpense'){
-        try {
-            returnExpense({category: 'history', key: 'id', value: values.expenseId})
-            return toast.success(`Expense was returned back!`)
-        } catch (error) {
-            throw new Error("There was a problem returning your expense")
-        }
-    }
-
-    if(_action === 'deleteHistoryExpense'){
-        try {
-            deleteItemHandler({category: 'history', key: 'id', value: values.expenseId})
-            return toast.success(`Expense was returned back!`)
-        } catch (error) {
-            throw new Error("There was a problem deleting your history expense")
-        }
-    }
+    // if (_action === 'returnExpense'){
+    //     try {
+    //         returnExpense({category: 'history', key: 'id', value: values.expenseId})
+    //         return toast.success(`Expense was returned back!`)
+    //     } catch (error) {
+    //         throw new Error("There was a problem returning your expense")
+    //     }
+    // }
 }
 
-const ExpensesPage = () => {
+const ExpensesHistoryPage = () => {
 
-    const { expenses } = useLoaderData()
-
+    const {expenses} = useLoaderData()
+    
     return (
         <div className='grid-lg'>
-            <h1>All Expenses</h1>
+            <h1>All deleted expenses</h1>
             {
                 expenses && expenses.length > 0
                     ?
                     (
                         <div className='grid-md'>
-                            <h2>Recent Expenses <small>({expenses.length} total)</small></h2>
-                            <ExpensesTable expenses={expenses} />
+                            <h2>History <small>({expenses.length} expeneses total)</small></h2>
+                            <ExpensesTable expenses={expenses} showHistory={true}/>
                             <div className='flex-sm'>
                                 <Link to={`/${expenses[0].userId}`} className='btn btn--dark'>
                                     Go back
@@ -75,4 +64,4 @@ const ExpensesPage = () => {
     )
 }
 
-export default ExpensesPage
+export default ExpensesHistoryPage

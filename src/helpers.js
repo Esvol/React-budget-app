@@ -1,9 +1,8 @@
-import { redirect } from "react-router-dom";
 
 export const waait = () => new Promise(res => setTimeout(res, 230))
 
-export const generateRandomColor = () => {
-    const existingBudgetsLength = fetchData("budgets")?.length ?? 0;
+export const generateRandomColor = (userId) => {
+    const existingBudgetsLength = getAllMatchingItems({category: 'budgets', key: 'userId', value: userId})?.length ?? 0;
     return `${existingBudgetsLength * 34}, 65%, 50%`
 }
 
@@ -11,34 +10,35 @@ export const fetchData = (key) => {
     return JSON.parse(localStorage.getItem(key))
 }
 
-export const deleteItem = (keys) => {
+export const deleteItemLocalStorage = (keys) => {
     keys.map(key => localStorage.removeItem(key))
 }
 
-export const createBudget = ({name, amount}) => {
+export const createBudget = ({name, amount, userId}) => {
 
     const newItem = {
         id: crypto.randomUUID(),
+        userId,
         name,
         createdAt: Date.now(),
         amount: +amount,
-        color: generateRandomColor()
+        color: generateRandomColor(userId)
     }
 
-    console.log(newItem);
     const existingBudgets = fetchData("budgets") ?? []
     return localStorage.setItem("budgets", JSON.stringify([...existingBudgets, newItem]))
 }
 
-export const createExpense = ({name, amount, budgetId}) => {
+export const createExpense = ({name, amount, budgetId, userId}) => {
 
     const newExpense = {
         id: crypto.randomUUID(),
         budgetId,
+        userId,
         name,
         amount: +amount,
         createdAt: Date.now(),
-        color: generateRandomColor(),        
+        color: generateRandomColor(userId),        
     }
 
     const existingExpenses = fetchData("expenses") ?? []
@@ -61,6 +61,10 @@ export const formatCurrency = (amt) => {
     })
 }
 
+export const formatDateToLocaleString = (epoch) => {
+    return new Date(epoch).toLocaleDateString();
+}
+
 
 export const calculateSpentByBudgets = (budgetId) => {
     const expenses = fetchData("expenses") ?? [];
@@ -77,31 +81,60 @@ export const calculateSpentByBudgets = (budgetId) => {
 
 
 // ExpenseItem
-export const formatDateToLocaleString = (epoch) => {
-    return new Date(epoch).toLocaleDateString();
-}
 
 export const getAllMatchingItems = ({category, key, value}) => {
     const data = fetchData(category) ?? [];
     return data.filter(item => item[key] === value)
 }
 
-export const deleteExpense = (id) => {
-    const expenses = JSON.parse(localStorage.getItem('expenses'))
-    localStorage.removeItem('expenses')
-    const updatedExpenses = expenses.filter(expense => expense.id !== id)
-    return localStorage.setItem('expenses', JSON.stringify(updatedExpenses))
+export const findUser = (name, password) => {
+    const users = fetchData('users') ?? []
+    const user = users.filter(user => {
+        if (user.name === name && user.password === password){
+            return user;
+        }
+        return null
+    })
+
+    return user[0];
 }
 
-export const deleteBudget = (id) => {
-    const budgets = fetchData("budgets")
-    localStorage.removeItem('budgets')
-    const updatedBudgets = budgets.filter(budget => budget.id !== id);
-    localStorage.setItem('budgets', JSON.stringify(updatedBudgets))
+export const deleteItemHandler = ({category, key, value}) => {
+    const items = fetchData(category) ?? []
+    localStorage.removeItem(category)
 
-    const expenses = JSON.parse(localStorage.getItem('expenses'))
-    localStorage.removeItem('expenses')
-    const updatedExpenses = expenses.filter(expense => expense.budgetId !== id)
-    localStorage.setItem('expenses', JSON.stringify(updatedExpenses))
+    const updatedItems = items.filter(item => item[key] !== value)
+    return localStorage.setItem(category, JSON.stringify(updatedItems))
+} 
+
+export const editBudget = ({category, key, value, name, amount}) => {
+    const budget = getAllMatchingItems({category, key, value})[0]
+
+    budget.name = name
+    budget.amount = Number(amount)
+    deleteItemHandler({category, key, value})
+    
+    const existingBudgets = fetchData("budgets") ?? []
+    return localStorage.setItem('budgets', JSON.stringify([...existingBudgets, budget]))
+}   
+
+// History page
+
+export const addToHistory = ({category, key, value}) => {
+    const items = fetchData(category) ?? [];
+    const historyItems = fetchData('history') ?? [];
+
+    const deletedItem = items.filter(item => item[key] === value)[0];
+    return localStorage.setItem("history", JSON.stringify([...historyItems, deletedItem]));
 }
 
+export const returnExpense = ({category, key, value}) => {
+    const historyExpenses = fetchData(category) ?? [];
+    const expenses = fetchData('expenses') ?? [];
+
+    deleteItemLocalStorage(['expenses'])
+    deleteItemHandler({category, key, value})
+
+    const historyExpense = historyExpenses.filter(item => item[key] === value)[0];
+    return localStorage.setItem("expenses", JSON.stringify([...expenses, historyExpense]));
+}

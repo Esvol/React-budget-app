@@ -37,6 +37,9 @@ svg {
   --light: 180 14% 85%;
   --warning: 4 66% 63%;
 
+  --green: 	115 69% 35%;
+  --history: 	170 49% 45%;
+
   /* utils */
   --space-xs: 8px;
   --space-sm: 16px;
@@ -94,6 +97,11 @@ h2,
 h3,
 .h3 {
   font-size: var(--fs-400);
+}
+
+h4,
+.h4 {
+  font-size: var(--fs-200);
 }
 
 small {
@@ -195,6 +203,28 @@ p {
 
 :where(.btn--warning):is(:hover, :focus-visible) {
   --backdrop: hsl(var(--warning));
+  --color: hsl(var(--bkg));
+}
+
+:where(.btn--green) {
+  --backdrop: hsl(var(--green) / 0.1);
+  border: 2px solid hsl(var(--green));
+  --color: hsl(var(--green));
+}
+
+:where(.btn--green):is(:hover, :focus-visible) {
+  --backdrop: hsl(var(--green));
+  --color: hsl(var(--bkg));
+}
+
+:where(.btn--history) {
+  --backdrop: hsl(var(--history) / 0.1);
+  border: 2px solid hsl(var(--history));
+  --color: hsl(var(--history));
+}
+
+:where(.btn--history):is(:hover, :focus-visible) {
+  --backdrop: hsl(var(--history));
   --color: hsl(var(--bkg));
 }
 
@@ -497,6 +527,7 @@ select {
 .progress-text {
   display: -webkit-box;
   display: -ms-flexbox;
+  position: relative;
   display: flex;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -505,6 +536,22 @@ select {
   -ms-flex-pack: justify;
   justify-content: space-between;
   gap: var(--space-lg);
+}
+
+.budget:hover .after-item{
+  opacity: 1;
+}
+
+.after-item{
+  opacity: 0;
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  transition: all 0.4s ease-in-out;
+}
+
+.after-input{
+  position: absolute;
 }
 
 .progress-text :nth-child(2) {
@@ -601,4 +648,11 @@ table a {
 /* toast */
 .Toastify__toast-body {
   font-size: var(--fs-300);
+}
+
+.linka{
+  font-size: 18px;
+  --backdrop: 0;
+  border: 0;
+  border-radius: 0;
 }
