@@ -15,7 +15,10 @@ export function mainLoader() {
 const Main = () => {
     const { user } = useLoaderData()
 
-    if (window.location.pathname === '/' && !user){
+    if (window.location.pathname === '/React-budget-app/'){
+        return <Navigate to={`/register`} />
+    }
+    else if (window.location.pathname === '/' && !user){
         return <Navigate to={'/login'} />
     }
     else if (window.location.pathname === '/' && user){
